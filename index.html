@@ -11,8 +11,9 @@
 
 <body>
   <input id='email' placeholder='Enter email...'></input>
+  <button id='validate_email'>Validate</button>
   <script type="text/javascript">
-    helperCode = `
+    var pythonHelperCode = `
         from cachelib import SimpleCache
 
         class MemoryCache():
@@ -65,25 +66,25 @@
   </script>
 
   <script type="text/javascript">
-    const input = document.getElementById('email')
-    input.addEventListener('keyup', (e) => {
-      console.log(e.target.value)
+    const button = document.getElementById('validate_email')
+
+    button.addEventListener('click', (e) => {
+      const input = document.getElementById('email');
+      pyodide.runPython(pythonMainCode(input.value));
     })
   </script>
 
   <script type="text/javascript">
-    pythonCode = `
+    var pythonMainCode = address => `
       def perform(*args):
         from flanker.addresslib import address, validate
 
-        ${helperCode}
-        parsed = address.parse('Foo foo@example.com')
-        print('parsed: ', parsed)
+        ${pythonHelperCode}
 
-        validated = address.validate_address('foo@mailgun.com')
+        validated = address.validate_address("${address}")
         print('validated: ', validated)
 
-        alternate = validate.suggest_alternate('foo@mailgu.net')
+        alternate = validate.suggest_alternate("${address}")
         print('alternate: ', alternate)
 
       import micropip
@@ -105,7 +106,6 @@
     async function main() {
       await languagePluginLoader
       await pyodide.loadPackage(['micropip'])
-      pyodide.runPython(pythonCode);
     }
 
     main()
